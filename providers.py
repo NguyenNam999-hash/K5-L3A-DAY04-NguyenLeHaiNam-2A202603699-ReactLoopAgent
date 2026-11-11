@@ -13,7 +13,8 @@ CONFIG = {
 
 
 def post_json(url, headers, payload):
-    req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json', **headers})
+    user_agent = os.getenv('STATUS_USER_AGENT', 'StatusAgentLab/1.0 (educational classroom)')
+    req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json', 'User-Agent': user_agent, **headers})
     try:
         with urllib.request.urlopen(req, timeout=60) as response:
             return json.load(response)
@@ -37,6 +38,10 @@ class Provider:
             raise ValueError('Cần đặt MODEL là model có hỗ trợ tool calling.')
         self.name, self.model = name, model
         key_name, self.url = CONFIG[name]
+        # Allow an OpenAI-compatible gateway without changing the default behavior.
+        base_url = os.getenv('OPENAI_BASE_URL') if name == 'openai' else None
+        if base_url:
+            self.url = base_url.rstrip('/') + '/chat/completions'
         self.key = os.getenv(key_name)
         if not self.key:
             raise ValueError(f'Thiếu {key_name}; xem README.md.')
@@ -47,7 +52,10 @@ class Provider:
         payload = {'model': self.model, 'messages': messages}
         if schemas:
             payload['tools'] = schemas
-        data = post_json(self.url, {'Authorization': f'Bearer {self.key}'}, payload)
+        headers = {'Authorization': f'Bearer {self.key}'}
+        if 'opencode.ai' in self.url:
+            headers['x-opencode-session'] = os.getenv('OPENCODE_SESSION_ID', 'ses_status_agent_lab')
+        data = post_json(self.url, headers, payload)
         choice = data['choices'][0]
         message = choice['message']
         calls = [{'id': c['id'], 'name': c['function']['name'], 'arguments': c['function']['arguments']} for c in message.get('tool_calls', [])]
