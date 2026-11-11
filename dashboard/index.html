@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testbench — Execution Dashboard</title>
+<meta name="description" content="Execution dashboard for the 22-case core eval suite: replay runs, inspect steps, timings and live logs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="page">
+
+  <header class="masthead">
+    <div class="masthead-top">
+      <span class="crumb"><span class="live-dot" aria-hidden="true"></span> TRACE REPLAY <span class="sep">/</span> CORE + BONUS</span>
+      <span class="snapshot">SNAPSHOT 09–10 NOV 2026</span>
+    </div>
+
+    <div class="masthead-main">
+      <div class="title-block">
+        <h1>TEST<span>BENCH</span></h1>
+        <p class="lede">Thirty-two evaluation cases — 22 core plus 10 bonus — on one execution surface. Hit <em>Run test</em> to replay a recorded trace or open any card to inspect its steps, timings and streaming log.</p>
+      </div>
+      <div class="masthead-actions">
+        <button id="run-all" class="btn btn-primary" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5 13 8l-9 5.5z"/></svg>
+          <span class="btn-label" id="run-all-label">Run all cases</span>
+        </button>
+        <button id="reset-all" class="btn btn-ghost" type="button">Reset</button>
+      </div>
+    </div>
+
+    <section class="telemetry" aria-label="Suite summary">
+      <div class="cell cell-total">
+        <span class="cell-label">Cases</span>
+        <span class="cell-value" id="count-total">32</span>
+        <span class="cell-note">22 core · 10 bonus</span>
+      </div>
+      <div class="cell">
+        <span class="cell-label"><i class="tick pass"></i>Passed</span>
+        <span class="cell-value" id="count-passed">0</span>
+        <span class="cell-note" id="note-passed">no runs yet</span>
+      </div>
+      <div class="cell">
+        <span class="cell-label"><i class="tick fail"></i>Failed</span>
+        <span class="cell-value" id="count-failed">0</span>
+        <span class="cell-note">grade &lt; 80</span>
+      </div>
+      <div class="cell">
+        <span class="cell-label"><i class="tick run"></i>Running</span>
+        <span class="cell-value" id="count-running">0</span>
+        <span class="cell-note" id="note-running">idle</span>
+      </div>
+      <div class="cell">
+        <span class="cell-label"><i class="tick idle"></i>Not run</span>
+        <span class="cell-value" id="count-idle">32</span>
+        <span class="cell-note">awaiting trigger</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress" id="progress" role="img" aria-label="Execution progress across cases">
+          <span class="seg seg-passed" id="seg-passed"></span>
+          <span class="seg seg-failed" id="seg-failed"></span>
+          <span class="seg seg-running" id="seg-running"></span>
+        </div>
+        <div class="progress-meta">
+          <span id="progress-label">0 / 32 executed</span>
+          <span class="score-badges">
+            <span class="judge-score">CORE <b id="judge-score">—</b></span>
+            <span class="judge-score bonus-score">BONUS <b id="bonus-score">—</b><em>/15</em></span>
+          </span>
+        </div>
+      </div>
+    </section>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <div class="filters" role="group" aria-label="Filter by execution status">
+        <button class="chip is-active" data-filter="all" type="button">All <b>32</b></button>
+        <button class="chip" data-filter="passed" type="button">Passed <b id="chip-passed">0</b></button>
+        <button class="chip" data-filter="failed" type="button">Failed <b id="chip-failed">0</b></button>
+        <button class="chip" data-filter="running" type="button">Running <b id="chip-running">0</b></button>
+        <button class="chip" data-filter="not-run" type="button">Not run <b id="chip-idle">32</b></button>
+      </div>
+      <div class="toolbar-side">
+        <div class="suite-key" aria-label="Card color key">
+          <span><i class="key-core"></i>Core 22</span>
+          <span><i class="key-bonus"></i>Bonus 10</span>
+        </div>
+        <p class="toolbar-hint">Click a card for execution detail · Run test stays on the card</p>
+      </div>
+    </div>
+
+    <section id="grid" class="grid" aria-label="Test case grid"></section>
+  </main>
+
+  <footer class="footer">
+    <span>Replay harness — tool traces read from <code>eval_after.json</code>. Timings are simulated at replay speed; recorded data is from 09–10 Nov 2026 and is not live status.</span>
+    <span class="footer-mark">32 / 32 TRACES LOADED</span>
+  </footer>
+</div>
+
+<dialog id="detail" class="detail" aria-labelledby="detail-title">
+  <div class="detail-shell">
+    <header class="detail-head">
+      <div class="detail-eyebrow">
+        <span class="detail-id" id="detail-id">E1</span>
+        <span class="detail-group" id="detail-group">EDGE CASES</span>
+        <span class="detail-scenario" id="detail-scenario">normal</span>
+      </div>
+      <h2 class="detail-title" id="detail-title">Loading…</h2>
+      <div class="detail-actions">
+        <span class="status-pill" id="detail-status" data-status="not-run"><i></i><span>Not Run</span></span>
+        <button id="detail-run" class="btn btn-primary btn-sm" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5 13 8l-9 5.5z"/></svg>
+          <span class="btn-label">Run test</span>
+        </button>
+        <button id="detail-close" class="icon-btn" type="button" aria-label="Close execution details">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3 3 13"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="detail-meta">
+      <div><span>Started</span><b id="meta-start">—</b></div>
+      <div><span>Ended</span><b id="meta-end">—</b></div>
+      <div><span>Duration</span><b id="meta-duration">—</b></div>
+      <div><span>Recorded grade</span><b id="meta-score">—</b></div>
+    </div>
+
+    <div class="detail-body">
+      <section class="steps-pane" aria-label="Execution steps">
+        <div class="pane-head">
+          <h3>Execution steps</h3>
+          <span class="pane-meta" id="steps-progress">0 / 0</span>
+        </div>
+        <div class="step-legend" aria-label="Step status legend">
+          <span data-status="pending"><i></i>Pending</span>
+          <span data-status="running"><i></i>Running</span>
+          <span data-status="passed"><i></i>Passed</span>
+          <span data-status="failed"><i></i>Failed</span>
+        </div>
+        <ol class="step-list" id="step-list"></ol>
+
+        <details class="answer-box">
+          <summary>Judge rationale &amp; final answer</summary>
+          <div class="answer-inner">
+            <p class="answer-reason" id="detail-reason"></p>
+            <p class="answer-improvement" id="detail-improvement"></p>
+            <pre class="answer-text" id="detail-answer"></pre>
+          </div>
+        </details>
+      </section>
+
+      <section class="log-pane" aria-label="Execution log">
+        <div class="pane-head log-head">
+          <h3>Live log</h3>
+          <span class="log-state" id="log-state"><i></i>IDLE</span>
+        </div>
+        <div class="log" id="log" role="log" aria-live="polite" aria-relevant="additions"></div>
+      </section>
+    </div>
+  </div>
+</dialog>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
